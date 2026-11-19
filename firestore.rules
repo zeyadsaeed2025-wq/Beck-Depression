@@ -1,0 +1,312 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection check endpoint (read-only)
+    match /test/connection {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    // Reusable hardened helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 2 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isDoctor() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    // Entity Validation Helpers
+    function isValidCodeRegistry(data) {
+      return data.keys().hasAll(['code', 'createdAt'])
+        && data.keys().hasOnly(['code', 'createdAt'])
+        && data.code is string
+        && data.code.size() >= 4
+        && data.code.size() <= 24
+        && data.code.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.createdAt == request.time;
+    }
+
+    function isValidExaminee(data) {
+      return data.keys().hasAll(['code', 'name', 'age', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['code', 'name', 'age', 'createdAt', 'updatedAt'])
+        && data.code is string
+        && data.code.size() >= 4
+        && data.code.size() <= 24
+        && data.code.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.name is string
+        && data.name.size() <= 120
+        && data.age is int
+        && data.age >= 5
+        && data.age <= 120
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll([
+          'id', 'examineeCode', 'examineeName', 'examineeAge',
+          'testId', 'testTitle', 'isBdi', 'answers', 'selectedIndices',
+          'rawScore', 'maxScore', 'classificationAr', 'classificationEn',
+          'classificationLevel', 'cognitiveAffectiveScore', 'somaticScore',
+          'needsReview', 'alerts', 'aiAnalysisAr', 'aiAnalysisEn',
+          'status', 'doctorNotes', 'reviewedByEmail', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'examineeCode', 'examineeName', 'examineeAge',
+          'testId', 'testTitle', 'isBdi', 'answers', 'selectedIndices',
+          'rawScore', 'maxScore', 'classificationAr', 'classificationEn',
+          'classificationLevel', 'cognitiveAffectiveScore', 'somaticScore',
+          'needsReview', 'alerts', 'aiAnalysisAr', 'aiAnalysisEn',
+          'status', 'doctorNotes', 'reviewedByEmail', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.examineeCode is string && data.examineeCode.size() >= 4 && data.examineeCode.size() <= 24
+        && data.examineeCode.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.examineeName is string && data.examineeName.size() <= 120
+        && data.examineeAge is int && data.examineeAge >= 5 && data.examineeAge <= 120
+        && isValidId(data.testId)
+        && data.testTitle is string && data.testTitle.size() >= 1 && data.testTitle.size() <= 200
+        && data.isBdi is bool
+        && data.answers is list && data.answers.size() >= 1 && data.answers.size() <= 100
+        && data.answers[0] is number
+        && data.selectedIndices is list && data.selectedIndices.size() >= 1 && data.selectedIndices.size() <= 100
+        && data.selectedIndices[0] is int
+        && data.answers.size() == data.selectedIndices.size()
+        && data.rawScore is number && data.rawScore >= 0 && data.rawScore <= 10000
+        && data.maxScore is number && data.maxScore >= 0 && data.maxScore <= 10000
+        && data.classificationAr is string && data.classificationAr.size() >= 1 && data.classificationAr.size() <= 160
+        && data.classificationEn is string && data.classificationEn.size() >= 1 && data.classificationEn.size() <= 160
+        && data.classificationLevel in ['minimal', 'mild', 'moderate', 'severe', 'custom']
+        && data.cognitiveAffectiveScore is number && data.cognitiveAffectiveScore >= 0
+        && data.somaticScore is number && data.somaticScore >= 0
+        && data.needsReview is bool
+        && data.alerts is list && data.alerts.size() <= 10
+        && (data.alerts.size() == 0 || data.alerts[0] is string)
+        && data.aiAnalysisAr is string && data.aiAnalysisAr.size() <= 8000
+        && data.aiAnalysisEn is string && data.aiAnalysisEn.size() <= 8000
+        && data.status in ['completed', 'reviewed']
+        && data.doctorNotes is string && data.doctorNotes.size() <= 2000
+        && data.reviewedByEmail is string && data.reviewedByEmail.size() <= 160
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCustomTest(data) {
+      return data.keys().hasAll([
+          'id', 'titleAr', 'titleEn', 'descriptionAr', 'descriptionEn',
+          'instructionsAr', 'instructionsEn', 'language', 'testType',
+          'scoringMethod', 'minPossibleScore', 'maxPossibleScore',
+          'questions', 'classificationBands', 'coverConfig',
+          'reportTemplateAr', 'reportTemplateEn', 'status',
+          'createdByUid', 'createdByEmail', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'titleAr', 'titleEn', 'descriptionAr', 'descriptionEn',
+          'instructionsAr', 'instructionsEn', 'language', 'testType',
+          'scoringMethod', 'minPossibleScore', 'maxPossibleScore',
+          'questions', 'classificationBands', 'coverConfig',
+          'reportTemplateAr', 'reportTemplateEn', 'status',
+          'createdByUid', 'createdByEmail', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id != 'bdi-1971-ar'
+        && data.titleAr is string && data.titleAr.size() >= 1 && data.titleAr.size() <= 200
+        && data.titleEn is string && data.titleEn.size() <= 200
+        && data.descriptionAr is string && data.descriptionAr.size() <= 2000
+        && data.descriptionEn is string && data.descriptionEn.size() <= 2000
+        && data.instructionsAr is string && data.instructionsAr.size() <= 3000
+        && data.instructionsEn is string && data.instructionsEn.size() <= 3000
+        && data.language in ['ar', 'en', 'both']
+        && data.testType is string && data.testType.size() <= 100
+        && data.scoringMethod in ['sum', 'average']
+        && data.minPossibleScore is number
+        && data.maxPossibleScore is number
+        && data.questions is list && data.questions.size() >= 1 && data.questions.size() <= 100
+        && data.questions[0] is map
+        && data.classificationBands is list && data.classificationBands.size() >= 1 && data.classificationBands.size() <= 10
+        && data.classificationBands[0] is map
+        && data.coverConfig is map
+        && data.reportTemplateAr is string && data.reportTemplateAr.size() <= 2000
+        && data.reportTemplateEn is string && data.reportTemplateEn.size() <= 2000
+        && data.status in ['draft', 'published']
+        && data.createdByUid is string && data.createdByUid.size() >= 1 && data.createdByUid.size() <= 128
+        && data.createdByEmail is string && data.createdByEmail.size() >= 1 && data.createdByEmail.size() <= 160
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll([
+          'id', 'actorUid', 'actorEmail', 'action', 'targetType', 'targetId', 'details', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'actorUid', 'actorEmail', 'action', 'targetType', 'targetId', 'details', 'createdAt'
+        ])
+        && isValidId(data.id)
+        && data.actorUid == request.auth.uid
+        && data.actorEmail is string && data.actorEmail.size() >= 1 && data.actorEmail.size() <= 160
+        && data.action is string && data.action.size() >= 1 && data.action.size() <= 80
+        && data.targetType is string && data.targetType.size() >= 1 && data.targetType.size() <= 60
+        && data.targetId is string && data.targetId.size() >= 1 && data.targetId.size() <= 128
+        && data.details is string && data.details.size() <= 500
+        && data.createdAt == request.time;
+    }
+
+    function isValidPlatformSetting(data) {
+      return data.keys().hasAll([
+          'id', 'platformSubtitleAr', 'platformSubtitleEn',
+          'showCopyrightNotice', 'bdiCoverAccent', 'updatedByUid', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'platformSubtitleAr', 'platformSubtitleEn',
+          'showCopyrightNotice', 'bdiCoverAccent', 'updatedByUid', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.platformSubtitleAr is string && data.platformSubtitleAr.size() <= 300
+        && data.platformSubtitleEn is string && data.platformSubtitleEn.size() <= 300
+        && data.showCopyrightNotice is bool
+        && data.bdiCoverAccent is string && data.bdiCoverAccent.size() <= 30
+        && data.updatedByUid == request.auth.uid
+        && data.updatedAt == request.time;
+    }
+
+    // 1. Code Registry (Zero-PII lookup only; no list)
+    match /codeRegistry/{code} {
+      allow get: if isValidId(code);
+      allow list: if false;
+      allow create: if isValidId(code)
+        && incoming().code == code
+        && isValidCodeRegistry(incoming());
+      allow update: if false;
+      allow delete: if isDoctor() && isValidId(code);
+    }
+
+    // 2. Examinees (No public read/list/update/delete; doctors only)
+    match /examinees/{code} {
+      allow get: if isDoctor() && isValidId(code);
+      allow list: if isDoctor();
+      allow create: if isValidId(code)
+        && incoming().code == code
+        && isValidExaminee(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isDoctor()
+        && isValidId(code)
+        && isValidExaminee(incoming())
+        && incoming().code == existing().code
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'age', 'updatedAt']);
+      allow delete: if isDoctor() && isValidId(code);
+    }
+
+    // 3. Assessment Sessions (No public read/list/update/delete; doctors only)
+    match /sessions/{sessionId} {
+      allow get: if isDoctor() && isValidId(sessionId);
+      allow list: if isDoctor();
+      allow create: if isValidId(sessionId)
+        && incoming().id == sessionId
+        && isValidSession(incoming())
+        && incoming().status == 'completed'
+        && incoming().doctorNotes == ''
+        && incoming().reviewedByEmail == ''
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/codeRegistry/$(incoming().examineeCode));
+      allow update: if isDoctor()
+        && isValidId(sessionId)
+        && isValidSession(incoming())
+        && incoming().id == existing().id
+        && incoming().examineeCode == existing().examineeCode
+        && incoming().testId == existing().testId
+        && incoming().rawScore == existing().rawScore
+        && incoming().classificationLevel == existing().classificationLevel
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'doctorNotes', 'reviewedByEmail', 'updatedAt'])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['aiAnalysisAr', 'aiAnalysisEn', 'updatedAt'])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['status', 'doctorNotes', 'reviewedByEmail', 'aiAnalysisAr', 'aiAnalysisEn', 'updatedAt'])
+        );
+      allow delete: if isDoctor() && isValidId(sessionId);
+    }
+
+    // 4. Custom Tests (Original BDI 'bdi-1971-ar' is strictly protected)
+    match /customTests/{testId} {
+      allow get: if isValidId(testId) && (existing().status == 'published' || isDoctor());
+      allow list: if resource.data.status == 'published' || isDoctor();
+      allow create: if isDoctor()
+        && isValidId(testId)
+        && testId != 'bdi-1971-ar'
+        && incoming().id == testId
+        && incoming().createdByUid == request.auth.uid
+        && isValidCustomTest(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isDoctor()
+        && isValidId(testId)
+        && testId != 'bdi-1971-ar'
+        && isValidCustomTest(incoming())
+        && incoming().id == existing().id
+        && incoming().createdByUid == existing().createdByUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'titleAr', 'titleEn', 'descriptionAr', 'descriptionEn',
+          'instructionsAr', 'instructionsEn', 'language', 'testType',
+          'scoringMethod', 'minPossibleScore', 'maxPossibleScore',
+          'questions', 'classificationBands', 'coverConfig',
+          'reportTemplateAr', 'reportTemplateEn', 'status', 'updatedAt'
+        ]);
+      allow delete: if isDoctor() && isValidId(testId) && testId != 'bdi-1971-ar';
+    }
+
+    // 5. Immutable Audit Logs
+    match /auditLogs/{logId} {
+      allow get: if isDoctor() && isValidId(logId);
+      allow list: if isDoctor();
+      allow create: if isDoctor()
+        && isValidId(logId)
+        && incoming().id == logId
+        && isValidAuditLog(incoming());
+      allow update, delete: if false;
+    }
+
+    // 6. Platform Cover Settings
+    match /platformSettings/{settingId} {
+      allow get: if isValidId(settingId) && (settingId == 'publicConfig' || isDoctor());
+      allow list: if isDoctor();
+      allow create: if isDoctor()
+        && isValidId(settingId)
+        && incoming().id == settingId
+        && isValidPlatformSetting(incoming());
+      allow update: if isDoctor()
+        && isValidId(settingId)
+        && incoming().id == existing().id
+        && isValidPlatformSetting(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'platformSubtitleAr', 'platformSubtitleEn', 'showCopyrightNotice',
+          'bdiCoverAccent', 'updatedByUid', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+  }
+}

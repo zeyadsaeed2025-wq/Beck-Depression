@@ -1,0 +1,301 @@
+{
+  "entities": {
+    "CodeRegistry": {
+      "title": "CodeRegistry",
+      "description": "Zero-PII registry of active examinee identification codes to prevent duplicates and confirm returning codes without exposing records.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Unique examinee identification code."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        }
+      },
+      "required": ["code", "createdAt"]
+    },
+    "Examinee": {
+      "title": "Examinee",
+      "description": "Examinee basic profile containing only identification code, optional name, age, and timestamps.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "age": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["code", "name", "age", "createdAt", "updatedAt"]
+    },
+    "AssessmentSession": {
+      "title": "AssessmentSession",
+      "description": "Completed psychological assessment session with item scores, deterministic classification, clinical alerts, and optional AI narrative.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "examineeCode": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "examineeName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "examineeAge": {
+          "type": "integer"
+        },
+        "testId": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "testTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "isBdi": {
+          "type": "boolean"
+        },
+        "answers": {
+          "type": "array"
+        },
+        "selectedIndices": {
+          "type": "array"
+        },
+        "rawScore": {
+          "type": "number"
+        },
+        "maxScore": {
+          "type": "number"
+        },
+        "classificationAr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "classificationEn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "classificationLevel": {
+          "type": "string",
+          "enum": ["minimal", "mild", "moderate", "severe", "custom"]
+        },
+        "cognitiveAffectiveScore": {
+          "type": "number"
+        },
+        "somaticScore": {
+          "type": "number"
+        },
+        "needsReview": {
+          "type": "boolean"
+        },
+        "alerts": {
+          "type": "array"
+        },
+        "aiAnalysisAr": {
+          "type": "string",
+          "maxLength": 8000
+        },
+        "aiAnalysisEn": {
+          "type": "string",
+          "maxLength": 8000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "reviewed"]
+        },
+        "doctorNotes": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "reviewedByEmail": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "examineeCode",
+        "examineeName",
+        "examineeAge",
+        "testId",
+        "testTitle",
+        "isBdi",
+        "answers",
+        "selectedIndices",
+        "rawScore",
+        "maxScore",
+        "classificationAr",
+        "classificationEn",
+        "classificationLevel",
+        "cognitiveAffectiveScore",
+        "somaticScore",
+        "needsReview",
+        "alerts",
+        "aiAnalysisAr",
+        "aiAnalysisEn",
+        "status",
+        "doctorNotes",
+        "reviewedByEmail",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CustomTest": {
+      "title": "CustomTest",
+      "description": "Custom academic test created by faculty members with independent cover page, questions, scoring rules, and report template.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "titleAr": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "titleEn": { "type": "string", "maxLength": 200 },
+        "descriptionAr": { "type": "string", "maxLength": 2000 },
+        "descriptionEn": { "type": "string", "maxLength": 2000 },
+        "instructionsAr": { "type": "string", "maxLength": 3000 },
+        "instructionsEn": { "type": "string", "maxLength": 3000 },
+        "language": { "type": "string", "enum": ["ar", "en", "both"] },
+        "testType": { "type": "string", "maxLength": 100 },
+        "scoringMethod": { "type": "string", "enum": ["sum", "average"] },
+        "minPossibleScore": { "type": "number" },
+        "maxPossibleScore": { "type": "number" },
+        "questions": { "type": "array" },
+        "classificationBands": { "type": "array" },
+        "coverConfig": { "type": "object" },
+        "reportTemplateAr": { "type": "string", "maxLength": 2000 },
+        "reportTemplateEn": { "type": "string", "maxLength": 2000 },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "createdByUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "createdByEmail": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "titleAr",
+        "titleEn",
+        "descriptionAr",
+        "descriptionEn",
+        "instructionsAr",
+        "instructionsEn",
+        "language",
+        "testType",
+        "scoringMethod",
+        "minPossibleScore",
+        "maxPossibleScore",
+        "questions",
+        "classificationBands",
+        "coverConfig",
+        "reportTemplateAr",
+        "reportTemplateEn",
+        "status",
+        "createdByUid",
+        "createdByEmail",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable administrative audit log entry for sensitive operations.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 4, "maxLength": 64, "pattern": "^[A-Za-z0-9_-]+$" },
+        "actorUid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "actorEmail": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "action": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "targetType": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "targetId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "details": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "actorUid", "actorEmail", "action", "targetType", "targetId", "details", "createdAt"]
+    },
+    "PlatformSetting": {
+      "title": "PlatformSetting",
+      "description": "Public presentation settings for cover branding without altering protected BDI content.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 2, "maxLength": 64, "pattern": "^[A-Za-z0-9_-]+$" },
+        "platformSubtitleAr": { "type": "string", "maxLength": 300 },
+        "platformSubtitleEn": { "type": "string", "maxLength": 300 },
+        "showCopyrightNotice": { "type": "boolean" },
+        "bdiCoverAccent": { "type": "string", "maxLength": 30 },
+        "updatedByUid": { "type": "string", "maxLength": 128 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "platformSubtitleAr", "platformSubtitleEn", "showCopyrightNotice", "bdiCoverAccent", "updatedByUid", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/codeRegistry/{code}": {
+      "schema": { "$ref": "#/entities/CodeRegistry" },
+      "description": "Zero-PII lookup registry for unique examinee codes."
+    },
+    "/examinees/{code}": {
+      "schema": { "$ref": "#/entities/Examinee" },
+      "description": "Examinee records accessible only to authenticated doctors."
+    },
+    "/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/AssessmentSession" },
+      "description": "Assessment sessions and reports accessible only to authenticated doctors."
+    },
+    "/customTests/{testId}": {
+      "schema": { "$ref": "#/entities/CustomTest" },
+      "description": "Custom academic tests created by faculty members."
+    },
+    "/auditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Immutable administrative audit logs."
+    },
+    "/platformSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/PlatformSetting" },
+      "description": "Platform cover presentation metadata."
+    }
+  }
+}

@@ -1,0 +1,198 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-ar: 'Cairo', system-ui, -apple-system, sans-serif;
+    --font-en: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-serif-en: 'Cormorant Garamond', Georgia, serif;
+    --font-mono-num: 'IBM Plex Mono', monospace;
+
+    /* Calm Psychological Academic Design System Tokens */
+    --color-sage-primary: #8FAE98;
+    --color-sage-deep: #587564;
+    --color-sage-deep-hover: #476051;
+    --color-sage-soft: #E7EFE8;
+    --color-surface-white: #FFFFFF;
+    --color-beige-warm: #F4EFE6;
+    --color-beige-light: #FAF8F3;
+    --color-text-main: #34443A;
+    --color-text-secondary: #5F6D64;
+    --color-text-muted: #78847B;
+    --color-border-calm: #E4E9E3;
+  }
+
+  html {
+    background-color: var(--color-beige-warm);
+    color: var(--color-text-main);
+    scroll-behavior: smooth;
+  }
+
+  html[dir="rtl"] body {
+    font-family: var(--font-ar);
+  }
+
+  html[dir="ltr"] body {
+    font-family: var(--font-en);
+  }
+
+  .font-editorial-en {
+    font-family: var(--font-serif-en);
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .font-mono-num {
+    font-family: var(--font-mono-num);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Accessible calm focus ring across all interactive elements */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid #8FAE98;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .calm-card {
+    background-color: var(--color-surface-white);
+    border: 1px solid var(--color-border-calm);
+    border-radius: 1rem;
+    box-shadow: 0 2px 14px rgba(52, 68, 58, 0.04);
+  }
+
+  .calm-surface {
+    background-color: var(--color-beige-light);
+    border: 1px solid var(--color-border-calm);
+    border-radius: 0.75rem;
+  }
+
+  .calm-input {
+    background-color: var(--color-beige-light);
+    border: 1px solid var(--color-border-calm);
+    color: var(--color-text-main);
+    border-radius: 0.75rem;
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .calm-input:focus {
+    background-color: var(--color-surface-white);
+    border-color: var(--color-sage-deep);
+    box-shadow: 0 0 0 3px rgba(143, 174, 152, 0.25);
+    outline: none;
+  }
+
+  .calm-btn-primary {
+    background-color: var(--color-sage-deep);
+    color: #FFFFFF;
+    border-radius: 0.75rem;
+    transition: background-color 180ms ease, opacity 180ms ease, transform 150ms ease;
+  }
+
+  .calm-btn-primary:hover:not(:disabled) {
+    background-color: var(--color-sage-deep-hover);
+  }
+
+  .calm-btn-primary:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .calm-btn-secondary {
+    background-color: var(--color-sage-soft);
+    color: var(--color-text-main);
+    border: 1px solid #D5E2D7;
+    border-radius: 0.75rem;
+    transition: background-color 180ms ease, border-color 180ms ease;
+  }
+
+  .calm-btn-secondary:hover:not(:disabled) {
+    background-color: #DAE6DC;
+    border-color: var(--color-sage-primary);
+  }
+
+  .calm-btn-outline {
+    background-color: var(--color-surface-white);
+    color: var(--color-text-main);
+    border: 1px solid var(--color-border-calm);
+    border-radius: 0.75rem;
+    transition: background-color 180ms ease, border-color 180ms ease;
+  }
+
+  .calm-btn-outline:hover:not(:disabled) {
+    background-color: var(--color-beige-light);
+    border-color: var(--color-sage-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm 10mm 12mm 10mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #34443A !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 8mm !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    border-radius: 0 !important;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+}
